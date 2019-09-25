@@ -1,0 +1,21 @@
+diff --git a/meson-gxl-s905d-phicomm-n1.dts b/meson-gxl-s905d-phicomm-n1.dts
+new file mode 100644
+index 0000000..7903dad
+--- /dev/null
++++ b/meson-gxl-s905d-phicomm-n1.dts
+@@ -0,0 +1,15 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++/*
++ * Copyright (c) 2019 Rural Hunter
++ */
++
++#include "gxl_p230_2g.dts"
++
++/ {
++	compatible = "phicomm,n1", "amlogic,s905d", "amlogic,meson-gxl";
++	model = "Phicomm N1";
++
++	cvbs-connector {
++		status = "disabled";
++	};
++};
