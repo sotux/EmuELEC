@@ -1,0 +1,2 @@
+#!/bin/bash
+PROJECT=Amlogic ARCH=arm DEVICE=Phicomm-N1 make -j4 image
