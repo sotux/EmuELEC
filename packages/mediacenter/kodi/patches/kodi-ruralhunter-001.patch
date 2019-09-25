@@ -1,0 +1,296 @@
+diff --git a/xbmc/FileItem.cpp b/xbmc/FileItem.cpp
+index 2a423fc..0d3c0c4 100644
+--- a/xbmc/FileItem.cpp
++++ b/xbmc/FileItem.cpp
+@@ -1118,7 +1118,8 @@ bool CFileItem::IsDVDFile(bool bVobs /*= true*/, bool bIfos /*= true*/) const
+ bool CFileItem::IsBDFile() const
+ {
+   std::string strFileName = URIUtils::GetFileName(m_strPath);
+-  return (StringUtils::EqualsNoCase(strFileName, "index.bdmv") || StringUtils::EqualsNoCase(strFileName, "MovieObject.bdmv"));
++  return (StringUtils::EqualsNoCase(strFileName, "index.bdmv") || StringUtils::EqualsNoCase(strFileName, "MovieObject.bdmv")
++  			|| StringUtils::EqualsNoCase(strFileName, "INDEX.BDM")|| StringUtils::EqualsNoCase(strFileName, "MOVIEOBJ.BDM"));
+ }
+ 
+ bool CFileItem::IsRAR() const
+@@ -1728,6 +1729,14 @@ std::string CFileItem::GetOpticalMediaPath() const
+   path = URIUtils::AddFileToFolder(GetPath(), "BDMV", "index.bdmv");
+   if (CFile::Exists(path))
+     return path;
++  
++  path = URIUtils::AddFileToFolder(GetPath(), "INDEX.BDM");
++  if (CFile::Exists(path))
++    return path;
++
++  path = URIUtils::AddFileToFolder(GetPath(), "BDMV", "INDEX.BDM");
++  if (CFile::Exists(path))
++    return path;
+ #endif
+   return std::string();
+ }
+diff --git a/xbmc/cores/VideoPlayer/DVDInputStreams/DVDFactoryInputStream.cpp b/xbmc/cores/VideoPlayer/DVDInputStreams/DVDFactoryInputStream.cpp
+index ec6be71..aac45e2 100644
+--- a/xbmc/cores/VideoPlayer/DVDInputStreams/DVDFactoryInputStream.cpp
++++ b/xbmc/cores/VideoPlayer/DVDInputStreams/DVDFactoryInputStream.cpp
+@@ -89,7 +89,8 @@ std::shared_ptr<CDVDInputStream> CDVDFactoryInputStream::CreateInputStream(IVide
+   else if (URIUtils::IsPVRRecording(file))
+     return std::shared_ptr<CInputStreamPVRRecording>(new CInputStreamPVRRecording(pPlayer, fileitem));
+ #ifdef HAVE_LIBBLURAY
+-  else if (fileitem.IsType(".bdmv") || fileitem.IsType(".mpls") || StringUtils::StartsWithNoCase(file, "bluray:"))
++  else if (fileitem.IsType(".bdmv") || fileitem.IsType(".mpls") || file.substr(0, 7) == "bluray:"
++          || fileitem.IsType(".bdm") || fileitem.IsType(".mpl"))
+     return std::shared_ptr<CDVDInputStreamBluray>(new CDVDInputStreamBluray(pPlayer, fileitem));
+ #endif
+   else if(StringUtils::StartsWithNoCase(file, "rtp://") ||
+diff --git a/xbmc/cores/VideoPlayer/VideoPlayer.cpp b/xbmc/cores/VideoPlayer/VideoPlayer.cpp
+index d8840ce..a13c02b 100644
+--- a/xbmc/cores/VideoPlayer/VideoPlayer.cpp
++++ b/xbmc/cores/VideoPlayer/VideoPlayer.cpp
+@@ -966,9 +966,9 @@ void CVideoPlayer::OpenDefaultStreams(bool reset)
+     if (OpenStream(m_CurrentSubtitle, stream.demuxerId, stream.id, stream.source))
+     {
+       valid = true;
+-      if(!psp.relevant(stream))
+-        visible = false;
+-      else if(stream.flags & StreamFlags::FLAG_FORCED)
++//      if(!psp.relevant(stream))
++//        visible = false;
++//      else if(stream.flags & StreamFlags::FLAG_FORCED)
+         visible = true;
+       break;
+     }
+diff --git a/xbmc/settings/AdvancedSettings.cpp b/xbmc/settings/AdvancedSettings.cpp
+index 8a2442f..b3a8dd3 100644
+--- a/xbmc/settings/AdvancedSettings.cpp
++++ b/xbmc/settings/AdvancedSettings.cpp
+@@ -429,7 +429,7 @@ void CAdvancedSettings::Initialize()
+ 
+   m_pictureExtensions = ".png|.jpg|.jpeg|.bmp|.gif|.ico|.tif|.tiff|.tga|.pcx|.cbz|.zip|.rss|.webp|.jp2|.apng";
+   m_musicExtensions = ".nsv|.m4a|.flac|.aac|.strm|.pls|.rm|.rma|.mpa|.wav|.wma|.ogg|.mp3|.mp2|.m3u|.gdm|.imf|.m15|.sfx|.uni|.ac3|.dts|.cue|.aif|.aiff|.wpl|.xspf|.ape|.mac|.mpc|.mp+|.mpp|.shn|.zip|.wv|.dsp|.xsp|.xwav|.waa|.wvs|.wam|.gcm|.idsp|.mpdsp|.mss|.spt|.rsd|.sap|.cmc|.cmr|.dmc|.mpt|.mpd|.rmt|.tmc|.tm8|.tm2|.oga|.url|.pxml|.tta|.rss|.wtv|.mka|.tak|.opus|.dff|.dsf|.m4b|.dtshd";
+-  m_videoExtensions = ".m4v|.3g2|.3gp|.nsv|.tp|.ts|.ty|.strm|.pls|.rm|.rmvb|.mpd|.m3u|.m3u8|.ifo|.mov|.qt|.divx|.xvid|.bivx|.vob|.nrg|.img|.iso|.udf|.pva|.wmv|.asf|.asx|.ogm|.m2v|.avi|.bin|.dat|.mpg|.mpeg|.mp4|.mkv|.mk3d|.avc|.vp3|.svq3|.nuv|.viv|.dv|.fli|.flv|.001|.wpl|.xspf|.zip|.vdr|.dvr-ms|.xsp|.mts|.m2t|.m2ts|.evo|.ogv|.sdp|.avs|.rec|.url|.pxml|.vc1|.h264|.rcv|.rss|.mpls|.webm|.bdmv|.wtv|.trp|.f4v";
++  m_videoExtensions = ".m4v|.3g2|.3gp|.nsv|.tp|.ts|.ty|.strm|.pls|.rm|.rmvb|.mpd|.m3u|.m3u8|.ifo|.mov|.qt|.divx|.xvid|.bivx|.vob|.nrg|.img|.iso|.udf|.pva|.wmv|.asf|.asx|.ogm|.m2v|.avi|.bin|.dat|.mpg|.mpeg|.mp4|.mkv|.mk3d|.avc|.vp3|.svq3|.nuv|.viv|.dv|.fli|.flv|.001|.wpl|.xspf|.zip|.vdr|.dvr-ms|.xsp|.mts|.m2t|.m2ts|.evo|.ogv|.sdp|.avs|.rec|.url|.pxml|.vc1|.h264|.rcv|.rss|.mpls|.webm|.bdmv|.bdm|.wtv|.trp|.f4v";
+   m_subtitlesExtensions = ".utf|.utf8|.utf-8|.sub|.srt|.smi|.rt|.txt|.ssa|.text|.ssa|.aqt|.jss|.ass|.idx|.ifo|.zip";
+   m_discStubExtensions = ".disc";
+   // internal music extensions
+diff --git a/xbmc/video/VideoDatabase.cpp b/xbmc/video/VideoDatabase.cpp
+index 4af4ae8..a9d1d08 100644
+--- a/xbmc/video/VideoDatabase.cpp
++++ b/xbmc/video/VideoDatabase.cpp
+@@ -8837,7 +8837,7 @@ void CVideoDatabase::CleanDatabase(CGUIDialogProgressBarHandle* handle, const st
+     }
+     m_pDS2->close();
+ 
+-    std::string filesToDelete;
++    std::vector<int> filesToDelete;
+ 
+     // Add any files that don't have a valid idPath entry to the filesToDelete list.
+     m_pDS->query("SELECT files.idFile FROM files WHERE NOT EXISTS (SELECT 1 FROM path WHERE path.idPath = files.idPath)");
+@@ -8845,7 +8845,7 @@ void CVideoDatabase::CleanDatabase(CGUIDialogProgressBarHandle* handle, const st
+     {
+       std::string file = m_pDS->fv("files.idFile").get_asString() + ",";
+       filesToTestForDelete += file;
+-      filesToDelete += file;
++      filesToDelete.push_back(m_pDS->fv("files.idFile").get_asInt());
+ 
+       m_pDS->next();
+     }
+@@ -8874,14 +8874,17 @@ void CVideoDatabase::CleanDatabase(CGUIDialogProgressBarHandle* handle, const st
+ 
+     if (!filesToDelete.empty())
+     {
+-      filesToDelete = "(" + StringUtils::TrimRight(filesToDelete, ",") + ")";
++      std::string fids;
++      for (const auto &i : filesToDelete)
++        fids += StringUtils::Format("%i,", i);
++      fids = "(" + StringUtils::TrimRight(fids, ",") + ")";
+ 
+       // Clean hashes of all paths that files are deleted from
+       // Otherwise there is a mismatch between the path contents and the hash in the
+       // database, leading to potentially missed items on re-scan (if deleted files are
+       // later re-added to a source)
+       CLog::LogF(LOGDEBUG, LOGDATABASE, "Cleaning path hashes");
+-      m_pDS->query("SELECT DISTINCT strPath FROM path JOIN files ON files.idPath=path.idPath WHERE files.idFile IN " + filesToDelete);
++      m_pDS->query("SELECT DISTINCT strPath FROM path JOIN files ON files.idPath=path.idPath WHERE files.idFile IN " + fids);
+       int pathHashCount = m_pDS->num_rows();
+       while (!m_pDS->eof())
+       {
+@@ -8891,7 +8894,7 @@ void CVideoDatabase::CleanDatabase(CGUIDialogProgressBarHandle* handle, const st
+       CLog::LogF(LOGDEBUG, LOGDATABASE, "Cleaned {} path hashes", pathHashCount);
+ 
+       CLog::Log(LOGDEBUG, LOGDATABASE, "%s: Cleaning files table", __FUNCTION__);
+-      sql = "DELETE FROM files WHERE idFile IN " + filesToDelete;
++      sql = "DELETE FROM files WHERE idFile IN " + fids;
+       m_pDS->exec(sql);
+     }
+ 
+@@ -9070,7 +9073,7 @@ void CVideoDatabase::CleanDatabase(CGUIDialogProgressBarHandle* handle, const st
+ }
+ 
+ std::vector<int> CVideoDatabase::CleanMediaType(const std::string &mediaType, const std::string &cleanableFileIDs,
+-                                                std::map<int, bool> &pathsDeleteDecisions, std::string &deletedFileIDs, bool silent)
++                                                std::map<int, bool> &pathsDeleteDecisions, std::vector<int> &deletedFileIDs, bool silent)
+ {
+   std::vector<int> cleanedIDs;
+   if (mediaType.empty() || cleanableFileIDs.empty())
+@@ -9100,19 +9103,18 @@ std::vector<int> CVideoDatabase::CleanMediaType(const std::string &mediaType, co
+     return cleanedIDs;
+ 
+   // now grab them media items
+-  std::string sql = PrepareSQL("SELECT %s.%s, %s.idFile, path.idPath, parentPath.strPath FROM %s "
+-                                 "JOIN files ON files.idFile = %s.idFile "
++  std::string sql = PrepareSQL("SELECT %s.%s, files.idFile, path.idPath, parentPath.strPath FROM files "
++                                 "LEFT JOIN %s ON files.idFile = %s.idFile "
+                                  "JOIN path ON path.idPath = files.idPath ",
+-                               table.c_str(), idField.c_str(), table.c_str(), table.c_str(),
++                               table.c_str(), idField.c_str(), table.c_str(),
+                                table.c_str());
+ 
+   if (isEpisode)
+     sql += "JOIN tvshowlinkpath ON tvshowlinkpath.idShow = episode.idShow JOIN path AS showPath ON showPath.idPath=tvshowlinkpath.idPath ";
+ 
+-  sql += PrepareSQL("LEFT JOIN path as parentPath ON parentPath.idPath = %s "
+-                    "WHERE %s.idFile IN (%s)",
+-                    parentPathIdField.c_str(),
+-                    table.c_str(), cleanableFileIDs.c_str());
++  sql += PrepareSQL("LEFT JOIN path as parentPath ON parentPath.idPath = files.idPath "
++                    "WHERE files.idFile IN (%s)",
++                    cleanableFileIDs.c_str());
+ 
+   VECSOURCES videoSources(*CMediaSourceSettings::GetInstance().GetSources("video"));
+   g_mediaManager.GetRemovableDrives(videoSources);
+@@ -9123,6 +9125,8 @@ std::vector<int> CVideoDatabase::CleanMediaType(const std::string &mediaType, co
+   while (!m_pDS2->eof())
+   {
+     bool del = true;
++    int fileId=m_pDS2->fv(1).get_asInt();
++    
+     if (m_pDS2->fv(3).get_isNull() == false)
+     {
+       std::string parentPath = m_pDS2->fv(3).get_asString();
+@@ -9131,7 +9135,7 @@ std::vector<int> CVideoDatabase::CleanMediaType(const std::string &mediaType, co
+       SScanSettings scanSettings;
+       std::string sourcePath;
+       GetSourcePath(parentPath, sourcePath, scanSettings);
+-
++      
+       bool bIsSourceName;
+       bool sourceNotFound = (CUtil::GetMatchingSource(parentPath, videoSources, bIsSourceName) < 0);
+ 
+@@ -9149,9 +9153,9 @@ std::vector<int> CVideoDatabase::CleanMediaType(const std::string &mediaType, co
+         if (sourcePathNotExists)
+         {
+           // in silent mode assume that the files are just temporarily missing
+-          if (silent)
++          if (silent || sourcePath.empty() || sourcePath.find("://") != std::string::npos)
+             del = false;
+-          else
++          else if(std::find(deletedFileIDs.begin(), deletedFileIDs.end(), fileId) == deletedFileIDs.end() )//not in deletedFileIDs list yet
+           {
+             CGUIDialogYesNo* pDialog = CServiceBroker::GetGUI()->GetWindowManager().GetWindow<CGUIDialogYesNo>(WINDOW_DIALOG_YES_NO);
+             if (pDialog != NULL)
+@@ -9166,6 +9170,8 @@ std::vector<int> CVideoDatabase::CleanMediaType(const std::string &mediaType, co
+               del = !pDialog->IsConfirmed();
+             }
+           }
++          else//already in deletedFileIDs list
++              del = true;
+         }
+ 
+         sourcePathsDeleteDecisions.insert(std::make_pair(sourcePathID, std::make_pair(sourcePathNotExists, del)));
+@@ -9183,8 +9189,10 @@ std::vector<int> CVideoDatabase::CleanMediaType(const std::string &mediaType, co
+ 
+     if (del)
+     {
+-      deletedFileIDs += m_pDS2->fv(1).get_asString() + ",";
+-      cleanedIDs.push_back(m_pDS2->fv(0).get_asInt());
++      deletedFileIDs.push_back(fileId);
++      int mid=m_pDS2->fv(0).get_asInt();
++      if(mid > 0)
++        cleanedIDs.push_back(mid);
+     }
+ 
+     m_pDS2->next();
+diff --git a/xbmc/video/VideoDatabase.h b/xbmc/video/VideoDatabase.h
+index 6297327..853223f 100644
+--- a/xbmc/video/VideoDatabase.h
++++ b/xbmc/video/VideoDatabase.h
+@@ -1010,7 +1010,7 @@ private:
+   std::string GetSafeFile(const std::string &dir, const std::string &name) const;
+ 
+   std::vector<int> CleanMediaType(const std::string &mediaType, const std::string &cleanableFileIDs,
+-                                  std::map<int, bool> &pathsDeleteDecisions, std::string &deletedFileIDs, bool silent);
++                                  std::map<int, bool> &pathsDeleteDecisions, std::vector<int> &deletedFileIDs, bool silent);
+ 
+   static void AnnounceRemove(std::string content, int id, bool scanning = false);
+   static void AnnounceUpdate(std::string content, int id);
+diff --git a/xbmc/video/VideoInfoScanner.cpp b/xbmc/video/VideoInfoScanner.cpp
+index 9014dee..afb0908 100644
+--- a/xbmc/video/VideoInfoScanner.cpp
++++ b/xbmc/video/VideoInfoScanner.cpp
+@@ -429,7 +429,7 @@ namespace VIDEO
+       if (CUtil::ExcludeFileOrFolder(pItem->GetPath(), (content == CONTENT_TVSHOWS) ? CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_tvshowExcludeFromScanRegExps
+                                                                     : CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_moviesExcludeFromScanRegExps))
+         continue;
+-
++      
+       if (info2->Content() == CONTENT_MOVIES || info2->Content() == CONTENT_MUSICVIDEOS)
+       {
+         if (m_handle)
+@@ -961,6 +961,31 @@ namespace VIDEO
+             break;
+         }
+       }
++      else if (StringUtils::EqualsNoCase(strFileX, "INDEX.BDM")||StringUtils::EqualsNoCase(strFileX, "index.bdmv"))
++      {
++        int j=x+1;
++        while (j < items.Size())
++        {
++          std::string strPathY, strFileY;
++          URIUtils::Split(items[j]->GetPath(), strPathY, strFileY);
++          if (StringUtils::StartsWithNoCase(strPathY, strPathX))
++            items.Remove(j);
++          else
++            j++;
++        }
++        j=x-1;
++        while (j >=0)
++        {
++          std::string strPathY, strFileY;
++          URIUtils::Split(items[j]->GetPath(), strPathY, strFileY);
++          if (StringUtils::StartsWithNoCase(strPathY, strPathX))
++          {
++            items.Remove(j);
++            x--;
++          }
++          j--;
++        }
++      }
+       x++;
+     }
+ 
+@@ -2055,7 +2080,25 @@ namespace VIDEO
+   {
+     MOVIELIST movielist;
+     CVideoInfoDownloader imdb(scraper);
+-    int returncode = imdb.FindMovie(title, year, movielist, progress);
++
++    
++    //fix for CMCT style names
++    size_t start=0;    //the position actual name should start
++    if(title.at(0)=='[') //CMCT style
++    {
++        start=title.find(']');
++        if(start != std::string::npos) //found end
++        {
++            start++;
++            if(title.at(start)=='.')//skip '.'
++                start++;
++        }
++        if(start>=title.size() || start<0) //don't skip if the '[]' includes the whole filename
++            start=0;
++    }    
++    std::string actual=title.substr(start);
++
++    int returncode = imdb.FindMovie(actual, year, movielist, progress);
+     if (returncode < 0 || (returncode == 0 && (m_bStop || !DownloadFailed(progress))))
+     { // scraper reported an error, or we had an error and user wants to cancel the scan
+       m_bStop = true;
