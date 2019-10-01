@@ -7,13 +7,5 @@
 echo "Phicomm-N1: Running mkimage ..."
 mcopy $RELEASE_DIR/3rdparty/bootloader/s905_autoscript ::
 mcopy $RELEASE_DIR/3rdparty/bootloader/uEnv.ini ::
-mcopy $RELEASE_DIR/3rdparty/bootloader/dtb.img ::/dtb.img
-mcopy $RELEASE_DIR/3rdparty/bootloader/boot-logo.bmp.gz ::
+mcopy $RELEASE_DIR/3rdparty/bootloader/dtb.img ::
 mcopy $RELEASE_DIR/3rdparty/bootloader/uInitrd ::
-
-#uboot_file="$RELEASE_DIR/3rdparty/bootloader/u-boot.bin"
-#if [ -f "$uboot_file" ]; then
-#    echo "Phicomm-N1: Writing u-boot to $(basename $DISK)"
-#    dd if="$uboot_file" of="$DISK" conv=fsync,notrunc bs=1 count=442 >"$SAVE_ERROR" 2>&1 || show_error
-#    dd if="$uboot_file" of="$DISK" conv=fsync,notrunc bs=512 skip=1 seek=1 >"$SAVE_ERROR" 2>&1 || show_error
-#fi
