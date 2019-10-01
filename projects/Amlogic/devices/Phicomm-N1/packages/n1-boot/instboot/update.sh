@@ -7,6 +7,7 @@
 [ -z "$SYSTEM_ROOT" ] && SYSTEM_ROOT=""
 [ -z "$BOOT_ROOT" ] && BOOT_ROOT="/flash"
 [ -z "$BOOT_PART" ] && BOOT_PART=$(df "$BOOT_ROOT" | tail -1 | awk {' print $1 '})
+[ -z "$UPDATE_DIR" ] && UPDATE_DIR="/storage/.update"
 
 if [ -z "$BOOT_DISK" ]; then
   case $BOOT_PART in
@@ -102,9 +103,9 @@ if [ -f $SYSTEM_ROOT/usr/share/bootloader/uEnv.ini ]; then
     sleep 1
 fi
 
-if [ -f $SYSTEM_ROOT/usr/share/bootloader/uInitrd ]; then
+if [ -f $UPDATE_DIR/.tmp/*/3rdparty/bootloader/uInitrd ]; then
     echo "Updating uInitrd..."
-    cp -p $SYSTEM_ROOT/usr/share/bootloader/uInitrd $BOOT_ROOT
+    cp -p $UPDATE_DIR/.tmp/*/3rdparty/bootloader/uInitrd $BOOT_ROOT
     sleep 1
 fi
 
