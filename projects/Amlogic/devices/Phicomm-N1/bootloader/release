@@ -7,6 +7,7 @@ mkdir -p $RELEASE_DIR/3rdparty/bootloader
 cp -a $INSTALL/usr/share/bootloader/s905_autoscript $RELEASE_DIR/3rdparty/bootloader/
 cp -a $INSTALL/usr/share/bootloader/uEnv.ini $RELEASE_DIR/3rdparty/bootloader/
 cp -a $INSTALL/usr/share/bootloader/device_trees/gxl_p230_2g.dtb $RELEASE_DIR/3rdparty/bootloader/dtb.img
-cp -a $INSTALL/usr/share/bootloader/boot-logo.bmp.gz $RELEASE_DIR/3rdparty/bootloader/
+
 echo "Making ramdisk uInitrd..."
 $TOOLCHAIN/bin/mkimage -C none -T ramdisk -A arm64 -d $INSTALL/../initramfs.cpio $RELEASE_DIR/3rdparty/bootloader/uInitrd
+cp -a $RELEASE_DIR/3rdparty/bootloader/uInitrd $INSTALL/usr/share/bootloader/
