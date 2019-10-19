@@ -1,2 +1,2 @@
 #!/bin/bash
-PROJECT=Amlogic ARCH=arm DEVICE=Phicomm-N1 make -j4 image
+PROJECT=Amlogic ARCH=arm DEVICE=Phicomm-N1 DISTRO=EmuELEC make -j4 image
